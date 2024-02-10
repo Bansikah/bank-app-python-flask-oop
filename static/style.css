@@ -40,3 +40,6 @@ body {
     margin-top: 20px;
     font-weight: bold;
 }
+.error-message {
+    color: red;
+}
