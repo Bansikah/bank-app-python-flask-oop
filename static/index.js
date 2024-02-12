@@ -1,7 +1,19 @@
 // add event listener to submit event
-document.getElementById('withdraw-form').addEventListener('submit', function(event) {
-    event.preventDefault();
+function deposit() {
+    var formData = new FormData(document.getElementById('deposit-form'));
 
+    fetch('/deposit', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        document.getElementById('result').innerHTML = result;
+    });
+}
+
+
+function withdraw() {
     var formData = new FormData(document.getElementById('withdraw-form'));
 
     fetch('/withdraw', {
@@ -12,4 +24,4 @@ document.getElementById('withdraw-form').addEventListener('submit', function(eve
     .then(result => {
         document.getElementById('result').innerHTML = result;
     });
-});
+}
