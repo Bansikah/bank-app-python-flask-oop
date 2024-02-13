@@ -2,7 +2,8 @@
 <html>
 <head>
     <title>Transaction History</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='history.css') }}">
 </head>
 <body>
     <h1>Transaction History for Account {{ account.account_number }}</h1>
@@ -18,7 +19,7 @@
         <tbody>
             {% for transaction in transactions %}
             <tr>
-                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>{{ transaction.amount }}</td>
                 <td>{{ transaction.description }}</td>
             </tr>

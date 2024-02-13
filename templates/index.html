@@ -27,8 +27,10 @@
 </head>
 <body>
     <h1>Hello Welcome our bank application</h1>
-    <a href="{{ url_for('login' )}}">Login page</a><br>
-    <a href="{{ url_for('signup' )}}">Signup page</a>
-  </body>
-<html>
- 
+    <a class="button" href="/signup">SIGNUP</a>
+    <a class="button" href="/login">LOGIN</a>
+  <!-- Link to transfer funds page -->
+  <a class="button" href="/transfer">Transfer Funds</a>
+  <a class="button" href="/history">View history</a>
+</body>
+</html>
