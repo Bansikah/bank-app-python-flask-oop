@@ -13,8 +13,9 @@ bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Use your preferred database UR
 #db = SQLAlchemy(app, binds={"default": "sqlite:///users.db"})
 db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///transfer.db'
 #app.config['SECRETE_KEY'] = 'secrete'
-
+db_trans = SQLAlchemy(app)
 #Creating a class for the users
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -72,6 +73,10 @@ class Transaction(db.Model):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/home')
+def home():
+    return render_template('home.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
