@@ -1,10 +1,12 @@
+from flask import Flask, render_template, redirect, request
+import csv
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask_bcrypt import Bcrypt
 import bcrypt
 
-
+develop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -70,8 +72,66 @@ class Transaction(db.Model):
     description = db.Column(db.String(100))
 
 
+def load_accounts():
+    accounts = []
+    with open('database.csv', 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            accounts.append(row)
+    return accounts
+
 @app.route('/')
 def index():
+    accounts = load_accounts()
+    return render_template('freeze.html', accounts=accounts)
+
+@app.route('/freeze', methods=['POST'])
+def freeze_account():
+    account_number = request.form['account_number']
+
+    with open('database.csv', 'r') as csvfile:
+        accounts = list(csv.DictReader(csvfile))
+        for account in accounts:
+            if account['Account Number'] == account_number:
+                account['Status'] = 'Frozen'
+        with open('database.csv', 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=accounts[0].keys())
+            writer.writeheader()
+            writer.writerows(accounts)
+
+    return redirect('/')
+
+@app.route('/unfreeze', methods=['POST'])
+def unfreeze_account():
+    account_number = request.form['account_number']
+
+    with open('database.csv', 'r') as csvfile:
+        accounts = list(csv.DictReader(csvfile))
+        for account in accounts:
+            if account['Account Number'] == account_number:
+                account['Status'] = 'Active'
+        with open('database.csv', 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=accounts[0].keys())
+            writer.writeheader()
+            writer.writerows(accounts)
+
+    return redirect('/')
+
+@app.route('/search', methods=['POST'])
+def search_account():
+    search_query = request.form['search_query']
+    accounts = load_accounts()
+    search_results = []
+
+    for account in accounts:
+        if search_query.lower() in account['Account Name'].lower():
+            search_results.append(account)
+
+    if len(search_results) == 0:
+        return render_template('not_found.html', search_query=search_query)
+    else:
+        return render_template('search.html', search_results=search_results, search_query=search_query)
+
     return render_template('index.html')
 
 @app.route('/home')
@@ -125,6 +185,7 @@ def history():
         if not account:
             error_message = "Invalid account number."
             return render_template('history_form.html', error_message=error_message)
+          develop
 
         transactions = Transaction.query.filter_by(account_number=account_number).all()
 
@@ -219,7 +280,8 @@ def deposit_form():
 
 #db.create_all()
 if __name__ == '__main__':
+    app.run(debug=True)
  with app.app_context():
     db.create_all()
     app.run(debug=True)
-
+develop
