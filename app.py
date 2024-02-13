@@ -4,28 +4,28 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///transfer.db'
-db = SQLAlchemy(app)
+db_trans = SQLAlchemy(app)
 
 
-class Account(db.Model):                                                       
-    account_number = db.Column(db.String(10), primary_key=True)
-    name = db.Column(db.String(50))
-    balance = db.Column(db.Float)
-    password = db.Column(db.String(50))
-    transactions = db.relationship('Transaction', backref='account', lazy=True)
+class Account(db_trans.Model):                                                       
+    account_number = db_trans.Column(db_trans.String(10), primary_key=True)
+    name = db_trans.Column(db_trans.String(50))
+    balance = db_trans.Column(db_trans.Float)
+    password = db_trans.Column(db_trans.String(50))
+    transactions = db_trans.relationship('Transaction', backref='account', lazy=True)
 
     def add_transaction(self, amount, description):
         transaction = Transaction(amount=amount, description=description, account_number=self.account_number)
-        db.session.add(transaction)
-        db.session.commit()
+        db_trans.session.add(transaction)
+        db_trans.session.commit()
 
 
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    account_number = db.Column(db.String(10), db.ForeignKey('account.account_number'))
-    date = db.Column(db.DateTime, default=datetime.now)
-    amount = db.Column(db.Float)
-    description = db.Column(db.String(100))
+class Transaction(db_trans.Model):
+    id = db_trans.Column(db_trans.Integer, primary_key=True)
+    account_number = db_trans.Column(db_trans.String(10), db_trans.ForeignKey('account.account_number'))
+    date = db_trans.Column(db_trans.DateTime, default=datetime.now)
+    amount = db_trans.Column(db_trans.Float)
+    description = db_trans.Column(db_trans.String(100))
 
 
 @app.route('/')
@@ -69,7 +69,7 @@ def transfer():
         recipient.add_transaction(amount, f"Received from {sender_account_number}")
 
         # Save changes to the database
-        db.session.commit()
+        db_trans.session.commit()
 
         success_message = f"Successfully transferred {amount} to {recipient_account_number}."
 
@@ -77,7 +77,21 @@ def transfer():
     else:
         return render_template('transfer.html', accounts=Account.query.all())
 
+@app.route('/history', methods=['GET', 'POST'])
+def history():
+    if request.method == 'POST':
+        account_number = request.form['account-number']
 
+        account = Account.query.filter_by(account_number=account_number).first()
+        if not account:
+            error_message = "Invalid account number."
+            return render_template('history_form.html', error_message=error_message)
+
+        transactions = Transaction.query.filter_by(account_number=account_number).all()
+
+        return render_template('history.html', account=account, transactions=transactions)
+    else:
+        return render_template('history_form.html')
 
 if __name__ == '__main__':
     app.debug = True
