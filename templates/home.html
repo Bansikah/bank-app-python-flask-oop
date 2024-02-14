@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <title>Webpage Design</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{url_for('static', filename='home.css')}}">
+    
 </head>
 <body>
 
@@ -14,10 +15,10 @@
 
             <div class="menu">
                 <ul>
-                    <li><a href="#">HOME</a></li>
+                    <li><a href="/">HOME</a></li>
                     <li><a href="#">LOCATION</a></li>
-                    <li><a href="#">REGISTER</a></li>
-                    <li><a href="#">LOGIN</a></li>
+                    <li><a href="/signup">REGISTER</a></li>
+                    <li><a href="/login">LOGIN</a></li>
                     <li><a href="#">CONTACT</a></li>
                 </ul>
             </div>
@@ -32,11 +33,7 @@
             <h1>WELCOME TO THE ADORSYS BANK  <br><span></span> <br>We Are........</h1>
             <p class="par">Making Your Banking Experience Simply the Best.....</p>
 
-                <button class="cn"><a href="#">JOIN US</a></button>
-
-
-
-
+                <button class="cn"><a href="{{ url_for('signup' )}}">JOIN US</a></button>
 
                 </div>
                     </div>

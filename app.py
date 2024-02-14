@@ -1,10 +1,11 @@
+from flask import Flask, render_template, redirect, request
+import csv
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_login import UserMixin
 from flask_bcrypt import Bcrypt
 import bcrypt
-
 
 
 app = Flask(__name__)
@@ -14,9 +15,6 @@ bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Use your preferred database UR
 db = SQLAlchemy(app)
 #db = SQLAlchemy(app, binds={"default": "sqlite:///users.db"})
-
-#app.config['SECRETE_KEY'] = 'secrete'
-
 #Creating a class for the users
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,6 +49,7 @@ class Account(db.Model):
     name = db.Column(db.String(50))
     balance = db.Column(db.Float)
     password = db.Column(db.String(50))
+    status = db.Column(db.String(10))
     transactions = db.relationship('Transaction', backref='account', lazy=True)
 
 
@@ -70,8 +69,44 @@ class Transaction(db.Model):
 
 
 @app.route('/')
-def index():
+def home():
+    return render_template('home.html')
+
+
+@app.route('/freeze', methods=['POST'])
+def freeze_account():
+    account_number = request.form['account_number']
+
+    account = Account.query.filter_by(account_number=account_number).first()
+    if account:
+        account.status = 'Frozen'
+        db.session.commit()
+
+    return redirect('/')
+
+@app.route('/unfreeze', methods=['POST'])
+def unfreeze_account():
+    account_number = request.form['account_number']
+
+    account = Account.query.filter_by(account_number=account_number).first()
+    if account:
+        account.status = 'Active'
+        db.session.commit()
+
+    return redirect('/')
+
+@app.route('/search', methods=['POST'])
+def search_account():
+    search_query = request.form['search_query']
+
+    search_results = Account.query.filter(Account.account_number.like(f'%{search_query}%')).all()
+
+    if len(search_results) == 0:
+        return render_template('not_found.html', search_query=search_query)
+    else:
+        return render_template('search.html', search_results=search_results, search_query=search_query)
     return render_template('index.html')
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -107,7 +142,7 @@ def signup():
         db.session.add(user)
         db.session.commit()
         #return redirect('/login')
-    return render_template('home.html', user=user)
+    return render_template('registration.html', user=user)
     
     
 @app.route('/transfer', methods=['GET', 'POST'])
@@ -163,6 +198,7 @@ def history():
         if not account:
             error_message = "Invalid account number."
             return render_template('history_form.html', error_message=error_message)
+        
 
         transactions = Transaction.query.filter_by(account_number=account_number).all()
 
@@ -234,7 +270,8 @@ def deposit_form():
 
 #db.create_all()
 if __name__ == '__main__':
- with app.app_context():
+    app.run(debug=True)
+    app.app_context()
     db.create_all()
     app.run(debug=True)
 

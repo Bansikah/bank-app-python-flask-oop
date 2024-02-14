@@ -27,7 +27,7 @@
             {% elif success_message %}
                     <div class="success-message" style="color: green;">{{ success_message }}</div>
             {% endif %}
-            <a href="{{ url_for('hello_world') }}" class="home-link" >Go to Home</a>
+            <a href="{{ url_for('static', filename='home.html') }}" class="home-link" >Go to Home</a>
         </div>
     </body>
 </html>
