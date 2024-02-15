@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, request
-import csv
+import uuid
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -49,7 +49,6 @@ class Account(db.Model):
     name = db.Column(db.String(50))
     balance = db.Column(db.Float)
     password = db.Column(db.String(50))
-    status = db.Column(db.String(10))
     transactions = db.relationship('Transaction', backref='account', lazy=True)
 
 
@@ -117,7 +116,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password, password):
             # User authentication successful
-            return render_template('index.html')
+            return render_template('bank.html')
         else:
             # User authentication failed
             return 'Invalid username or password'
@@ -125,6 +124,10 @@ def login():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    def generate_unique_account_number():
+        account_number = str(uuid.uuid4().int)[:10]  # Generate a UUID and extract the first 10 digits
+        return account_number
+    
     user = None  # Initialize the user variable
     if request.method == 'POST':
         # handle request
@@ -141,8 +144,22 @@ def signup():
         user = User(username=username, email=email, phonenumber=phonenumber, password=hashed_password, address=address,country=country, occupation=occupation, account_type=account_type)
         db.session.add(user)
         db.session.commit()
-        #return redirect('/login')
+        
+        # Create an associated account for the user
+        account_number = generate_unique_account_number()
+        name = username
+        balance = 0.0
+        account_password = hashed_password
+
+        account = Account(account_number=account_number, name=name, balance=balance, password=account_password)
+        db.session.add(account)
+        db.session.commit()
+        
     return render_template('registration.html', user=user)
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('bank.html')
     
     
 @app.route('/transfer', methods=['GET', 'POST'])
