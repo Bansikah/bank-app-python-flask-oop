@@ -148,7 +148,7 @@ def signup():
         # Create an associated account for the user
         account_number = generate_unique_account_number()
         name = username
-        balance = 0.0
+        balance = 2000.0
         account_password = hashed_password
 
         account = Account(account_number=account_number, name=name, balance=balance, password=account_password)
@@ -282,6 +282,10 @@ def deposit_form():
 
         except Exception as e:
             error_message = f"An unexpected error occurred: {e}"
+        # Add transactions to sender and recipient accounts
+        account.add_transaction(+deposit_amount, f"Deposit  to {account_number}")
+        # Save changes to the database
+        db.session.commit()
 
     return render_template('deposit.html', error_message=error_message, success_message=success_message)
 
