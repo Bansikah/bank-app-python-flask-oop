@@ -71,6 +71,28 @@ class Transaction(db.Model):
 def home():
     return render_template('home.html')
 
+# @app.route('/account')
+# def account():
+    
+#     account = Account.query.filter_by(account_number=account_number).first() 
+#     return render_template('bank.html')
+
+@app.route('/profile', methods=['POST'])
+def profile():
+    if request.method == 'POST':
+        user = User.query.filter_by(id=id).first()
+        if not user:
+            error_message = "Invalid account number."
+            return render_template('history_form.html', error_message=error_message)
+        
+
+        profile = User.query.filter_by(id=id).all()
+
+        return render_template('profile.html', user=user)
+    else:
+        return render_template('profile.html')
+
+
 
 @app.route('/freeze', methods=['POST'])
 def freeze_account():
@@ -107,7 +129,6 @@ def search_account():
     return render_template('index.html')
 
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -116,7 +137,11 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password, password):
             # User authentication successful
-            return render_template('bank.html')
+            account = Account.query.filter_by(name=username).first()
+            if account:
+                return render_template('bank.html', account=account)
+            else:
+                return 'Account not found'
         else:
             # User authentication failed
             return 'Invalid username or password'
@@ -125,44 +150,75 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     def generate_unique_account_number():
-        account_number = str(uuid.uuid4().int)[:10]  # Generate a UUID and extract the first 10 digits
+        account_number = str(uuid.uuid4().int)[:5]  # Generate a UUID and extract the first 10 digits
         return account_number
-    
+
     user = None  # Initialize the user variable
+    error_message = None  # Initialize the error message variable
+
     if request.method == 'POST':
         # handle request
         username = request.form['username']
         email = request.form['email']
         phonenumber = request.form['phonenumber']
         password = request.form['password']
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        #new_user = User(username=username, password=hashed_password)
         address = request.form['address']
         country = request.form['country']
         occupation = request.form['occupation']
         account_type = request.form['account_type']
-        user = User(username=username, email=email, phonenumber=phonenumber, password=hashed_password, address=address,country=country, occupation=occupation, account_type=account_type)
-        db.session.add(user)
-        db.session.commit()
-        
-        # Create an associated account for the user
-        account_number = generate_unique_account_number()
-        name = username
-        balance = 2000.0
-        account_password = hashed_password
 
-        account = Account(account_number=account_number, name=name, balance=balance, password=account_password)
-        db.session.add(account)
-        db.session.commit()
-        
-    return render_template('registration.html', user=user)
+        # Perform password validation
+        if not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password):
+            error_message = "Password must contain both letters and numbers."
+
+        # Perform phone number validation
+        if not phonenumber.isdigit() or len(phonenumber) != 9:
+            error_message = "Phone number must be a 9-digit number."
+
+        if error_message is None:
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+            user = User(username=username, email=email, phonenumber=phonenumber, password=hashed_password,
+                        address=address, country=country, occupation=occupation, account_type=account_type)
+            db.session.add(user)
+            db.session.commit()
+
+            # Create an associated account for the user
+            account_number = generate_unique_account_number()
+            name = username
+            balance = 2000.0
+            account_password = hashed_password
+
+            account = Account(account_number=account_number, name=name, balance=balance, password=account_password)
+            db.session.add(account)
+            db.session.commit()
+            return render_template('registration.html', user=user, error_message=error_message)
+        return redirect('/login ')
+    return render_template('registration.html', user=user, error_message=error_message)
+
+
+# @app.route('/dashboard')
+# def bank():
+#     # # Assuming you have a logged-in user and can access the account_number
+#     #account_number = '1269009757'  # Replace with the actual account number
+#      account = Account.query.filter_by(aaccount_number).first()
+#     #account = Account.query.filter_by(account_number=account_number).first()
+#     #balance = account.balance if account else 0.0
+#     return render_template('bank.html', balance=balance)
 
 @app.route('/dashboard')
-def dashboard():
-    return render_template('bank.html')
+def bank():
+    account = Account.query.filter_by(account_number=account_number).first()
+    if not account:
+        # Handle missing account (error message or redirect)
+        return render_template('bank.html', error="Account not found")
+    balance = account.balance
+    # Proceed with processing and rendering
+    return render_template('bank.html',balance=balance)
+
+
     
-    
-@app.route('/transfer', methods=['GET', 'POST'])
+@app.route('/transfer', methods=['GET', 'POST']  )
 def transfer():
     if request.method == 'POST':
         sender_account_number = request.form['sender-account-number']
@@ -183,7 +239,7 @@ def transfer():
             error_message = "Recipient account number or name is invalid."
         elif amount > sender.balance:
             error_message = "Insufficient balance."
-        elif password != sender.password:
+        elif not bcrypt.check_password_hash(sender.password, password):
             error_message = "Incorrect password."
 
         if error_message:

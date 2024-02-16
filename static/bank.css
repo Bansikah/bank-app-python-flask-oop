@@ -60,6 +60,7 @@ body {
   display: flex;
   align-items: center;
   margin-right: 20px;
+  font-size: large;
   
 }
 
@@ -70,6 +71,8 @@ body {
   border: none;
   cursor: pointer;
   color: #333;
+  font-size: large;
+  font-weight: bold;
 }
 
 .user-profile span:first-child {

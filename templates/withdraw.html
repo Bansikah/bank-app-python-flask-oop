@@ -25,7 +25,11 @@
             {% elif success_message %}
                 <div class="success-message">{{ success_message }}</div>
             {% endif %}
-            <a href="{{ url_for('static', filename='home.html') }}" class="home-link">Go to Home</a>
+            <a href="{{ url_for('static', filename='home.html') }}"></a>
+            <a href="/dashboard">
+                <i class="ph-check-square"></i>
+                <span>Bank to Home</span>
+              </a>
         </div>
     </body>
 </html>

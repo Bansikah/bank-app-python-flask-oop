@@ -2,39 +2,39 @@
 <html>
 <head>
   <title>User Registration Form</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='register.css') }}">
   <style>
     /* Make the form responsive */
-.container {
-  max-width: 500px;
-  margin: 0 auto;
-}
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
 
-/* Center the form on the page */
-.container form {
-  margin: 0 auto;
-}
+    /* Center the form on the page */
+    .container form {
+      margin: 0 auto;
+    }
 
-/* Make the form fields responsive */
-.container form input,
-.container form select {
-  width: 100%;
-}
+    /* Make the form fields responsive */
+    .container form input,
+    .container form select {
+      width: 100%;
+    }
 
-/* Add some spacing between the form fields */
-.container form label {
-  margin-bottom: 10px;
-}
+    /* Add some spacing between the form fields */
+    .container form label {
+      margin-bottom: 10px;
+    }
 
-/* Style the submit button */
-.container form input[type="submit"] {
-  background-color: #008CBA;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    /* Style the submit button */
+    .container form input[type="submit"] {
+      background-color: #008CBA;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -57,10 +57,24 @@
       <input type="text" id="address" name="address" required value="{{ user.address }}">
 
       <label for="Country">Country:</label>
-      <input type="text" id="Country" name="country" required value="{{ user.Country }}">
+      <select id="country" name="country" required>
+        <!-- Add options for countries -->
+        <option value="USA">USA</option>
+        <option value="USA">Cameroon</option>
+        <option value="Canada">Canada</option>
+        <option value="UK">UK</option>
+        <!-- Add more countries as needed -->
+      </select>
 
       <label for="occupation">Occupation:</label>
-      <input type="text" id="occupation" name="occupation" required value="{{ user.occupation }}">
+      <select id="occupation" name="occupation" required>
+        <!-- Add options for countries -->
+        <option value="Teacher">Teacher</option>
+        <option value="Engineer">Engineer</option>
+        <option value="Business man">Business man</option>
+        <option value="Manager">Manager</option>
+        <!-- Add more countries as needed -->
+      </select>
 
       <label for="account_type">Account Type:</label>
       <select id="account_type" name="account_type" required>
@@ -68,8 +82,14 @@
         <option value="deposit">Deposit Account</option>
       </select>
       <input type="submit" value="Register">
-      <a href="/login" >Already have an account? Login<a/>
+      <a href="/login">Already have an account? Login</a>
     </form>
+
+    
+  {% if error_message %}
+    <div class="error-message">{{ error_message }}</div>
+  {% endif %}
   </div>
+  
 </body>
 </html>
