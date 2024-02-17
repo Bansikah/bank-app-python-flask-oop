@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, request, redirect, session
 import uuid
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -6,11 +6,14 @@ from datetime import datetime
 from flask_login import UserMixin
 from flask_bcrypt import Bcrypt
 import bcrypt
+import re
 
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 # Configure the SQLAlchemy database
+
+app.secret_key = 'MySecretKey123'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Use your preferred database UR
 db = SQLAlchemy(app)
@@ -139,7 +142,8 @@ def login():
             # User authentication successful
             account = Account.query.filter_by(name=username).first()
             if account:
-                return render_template('bank.html', account=account)
+                session['account_number'] = account.account_number
+                return redirect('/dashboard')
             else:
                 return 'Account not found'
         else:
@@ -172,8 +176,11 @@ def signup():
             error_message = "Password must contain both letters and numbers."
 
         # Perform phone number validation
-        if not phonenumber.isdigit() or len(phonenumber) != 9:
-            error_message = "Phone number must be a 9-digit number."
+        if not phonenumber.isdigit() or len(phonenumber) != 9 or not re.match(r'^(67|69|68|65)', phonenumber):
+            error_message = "Phone number must be a 9-digit number starting with 67, 69, 68, or 65."
+            
+        if error_message:
+            return render_template('registration.html', error_message=error_message, accounts=Account.query.all())
 
         if error_message is None:
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -197,27 +204,23 @@ def signup():
     return render_template('registration.html', user=user, error_message=error_message)
 
 
-# @app.route('/dashboard')
-# def bank():
-#     # # Assuming you have a logged-in user and can access the account_number
-#     #account_number = '1269009757'  # Replace with the actual account number
-#      account = Account.query.filter_by(aaccount_number).first()
-#     #account = Account.query.filter_by(account_number=account_number).first()
-#     #balance = account.balance if account else 0.0
-#     return render_template('bank.html', balance=balance)
 
-@app.route('/dashboard')
-def bank():
+
+# @app.route("/dashboard<int:account_number>")
+# def dashboard(account_number):
+#     account = Account.query.get_or_404(account_number)
+#     balance = account.balance
+#     name = account.name
+#     return render_template('bank.html', account = account, balance=balance, name=name)
+
+@app.route("/dashboard", methods=['GET'])
+def dashboard():
+    account_number = session.get('account_number')
     account = Account.query.filter_by(account_number=account_number).first()
-    if not account:
-        # Handle missing account (error message or redirect)
-        return render_template('bank.html', error="Account not found")
-    balance = account.balance
-    # Proceed with processing and rendering
-    return render_template('bank.html',balance=balance)
+    if account:
+        return render_template('bank.html', account=account, account_number=account_number, balance=account.balance, name=account.name)
+    return 'Account not found'
 
-
-    
 @app.route('/transfer', methods=['GET', 'POST']  )
 def transfer():
     if request.method == 'POST':
@@ -263,22 +266,24 @@ def transfer():
         return render_template('transfer.html', accounts=Account.query.all())
 
 
+
 @app.route('/history', methods=['GET', 'POST'])
 def history():
     if request.method == 'POST':
         account_number = request.form['account-number']
-        account = Account.query.filter_by(account_number=account_number).first()
-        if not account:
+        sender = Account.query.filter_by(account_number=account_number).first()
+        error_message = None
+        account_num =session.get('account_number') 
+        
+        if not sender :
             error_message = "Invalid account number."
             return render_template('history_form.html', error_message=error_message)
-        
 
         transactions = Transaction.query.filter_by(account_number=account_number).all()
 
-        return render_template('history.html', account=account, transactions=transactions)
+        return render_template('history.html', account=sender, account_number=account_number, transactions=transactions)
     else:
         return render_template('history_form.html')
-
 
 @app.route('/withdraw', methods=['GET', 'POST'])
 def withdraw_form():
@@ -303,10 +308,17 @@ def withdraw_form():
                     updated_balance = new_balance
                     success_message = f"Withdrawal of {withdraw_amount}FCFA successful😊👍. Updated balance: {updated_balance}FCFA"
             else:
+                account_number != account.account_number
                 error_message = "Invalid account number."
 
         except Exception as e:
             error_message = f"An unexpected error occurred: {e}"
+            
+            # Add transactions to sender and recipient accounts
+        account.add_transaction(+withdraw_amount, f"withdraw  from {account_number}")
+        # Save changes to the database
+        db.session.commit()
+
 
     return render_template('withdraw.html', error_message=error_message, success_message=success_message)
 
@@ -316,10 +328,9 @@ def deposit_form():
     error_message = None
     success_message = None
     updated_balance = None
-
     if request.method == 'POST':
-        account_number = request.form.get('account-number')
-        deposit_amount = float(request.form.get('deposit-amount'))
+        account_number = request.form['account-number']
+        deposit_amount = float(request.form['deposit-amount'])
         account = Account.query.filter_by(account_number=account_number).first()
 
         try:

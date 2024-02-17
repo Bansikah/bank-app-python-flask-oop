@@ -134,4 +134,25 @@ body {
     font-weight: bold;
     margin-top: 1rem;
   }
+  .form-group {
+    margin-bottom: 20px;
+  }
   
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .form-group select {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Optional: Style the selected option */
+  .form-group select option:checked {
+    font-weight: bold;
+  }

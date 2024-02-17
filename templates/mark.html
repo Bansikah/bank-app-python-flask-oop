@@ -29,7 +29,7 @@
       </div>
       <div class="app-header-actions">
         <button class="user-profile">
-          <td> {{ account.name }}</b></td>
+          <td> {{ name }}</b></td>
           <span>
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0e-9L-OuQW5Dqfbaqlpl84ptS0VWZbY1K_A&usqp=CAU" />
           </span>
@@ -52,7 +52,7 @@
     <div class="app-body">
       <div class="app-body-navigation">
         <nav class="navigation">
-          <a href="/dashboard">
+          <a href="/dashboard{{ account.account_number }}">
             <i class="ph-browsers"></i>
             <span>Dashboard</span>
           </a>
@@ -99,7 +99,7 @@
                 <h3>
                   <span>Account Balance</span>
                   <br><br>
-                  <td>{{ account.balance }}</td>
+                  <td>{{ balance }}</td>
                 </h3>
               </div>
               </a>

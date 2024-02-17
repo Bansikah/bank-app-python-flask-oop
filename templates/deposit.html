@@ -23,11 +23,11 @@
         
             <script src="/static/index.js"></script>
             {% if error_message %}
-                    <div class="error-message" style="color: red;">{{ error_message }}</div>
+                <div class="error-message" style="color: red;">{{ error_message }}</div>
             {% elif success_message %}
-                    <div class="success-message" style="color: green;">{{ success_message }}</div>
+                <div class="success-message" style="color: green;">{{ success_message }}</div>
             {% endif %}
-            <a href="{{ url_for('static', filename='home.html') }}" class="home-link" >Go to Home</a>
+            <a href="/dashboard" class="home-link">Go to Home</a>
         </div>
     </body>
 </html>

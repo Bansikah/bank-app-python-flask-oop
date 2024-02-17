@@ -58,13 +58,16 @@
 </head>
 <body>
     <h1>Transaction History</h1>
-    {% if error_message %}
-    <p>{{ error_message }}</p>
-    {% endif %}
     <form action="/history" method="POST">
         <label for="account-number">Account Number:</label>
         <input type="text" id="account-number" name="account-number"><br><br>
         <input type="submit" value="Get Transaction History">
     </form>
+
+    <center><div>
+        {% if error_message %}
+    <p>{{ error_message }}</p>
+    {% endif %}
+    </div></center>
 </body>
 </html>
