@@ -80,20 +80,9 @@ def home():
 #     account = Account.query.filter_by(account_number=account_number).first() 
 #     return render_template('bank.html')
 
-@app.route('/profile', methods=['POST'])
-def profile():
-    if request.method == 'POST':
-        user = User.query.filter_by(id=id).first()
-        if not user:
-            error_message = "Invalid account number."
-            return render_template('history_form.html', error_message=error_message)
-        
-
-        profile = User.query.filter_by(id=id).all()
-
-        return render_template('profile.html', user=user)
-    else:
-        return render_template('profile.html')
+@app.route('/settings')
+def settings():
+    return render_template('settings.html')
 
 
 
@@ -224,7 +213,7 @@ def dashboard():
 @app.route('/transfer', methods=['GET', 'POST']  )
 def transfer():
     if request.method == 'POST':
-        sender_account_number = request.form['sender-account-number']
+        sender_account_number = session.get('account_number')
         recipient_account_number = request.form['recipient-account-number']
         recipient_name = request.form['recipient-name']
         amount = float(request.form['amount'])
@@ -271,17 +260,17 @@ def transfer():
 def history():
     if request.method == 'POST':
         account_number = request.form['account-number']
-        sender = Account.query.filter_by(account_number=account_number).first()
+        current = Account.query.filter_by(account_number=account_number).first()
         error_message = None
-        account_num =session.get('account_number') 
+        account_num = session.get('account_number') 
         
-        if not sender :
+        if account_number != account_num:
             error_message = "Invalid account number."
             return render_template('history_form.html', error_message=error_message)
 
         transactions = Transaction.query.filter_by(account_number=account_number).all()
 
-        return render_template('history.html', account=sender, account_number=account_number, transactions=transactions)
+        return render_template('history.html', account=current, account_number=account_number, transactions=transactions, account_num=account_num)
     else:
         return render_template('history_form.html')
 
@@ -295,6 +284,7 @@ def withdraw_form():
         account_number = request.form.get('account-number')
         withdraw_amount = float(request.form.get('withdraw-amount'))
         account = Account.query.filter_by(account_number=account_number).first()
+        account_num = session.get('account_number')
 
         try:
             if account:
@@ -307,8 +297,10 @@ def withdraw_form():
                     db.session.commit()
                     updated_balance = new_balance
                     success_message = f"Withdrawal of {withdraw_amount}FCFA successful😊👍. Updated balance: {updated_balance}FCFA"
+                if account_number != account_num:
+                    error_message = "Invalid account number."
             else:
-                account_number != account.account_number
+                account_number != account_num
                 error_message = "Invalid account number."
 
         except Exception as e:
@@ -332,6 +324,7 @@ def deposit_form():
         account_number = request.form['account-number']
         deposit_amount = float(request.form['deposit-amount'])
         account = Account.query.filter_by(account_number=account_number).first()
+        account_num = session.get('account_number')
 
         try:
             if account:
@@ -344,6 +337,8 @@ def deposit_form():
                     db.session.commit()
                     updated_balance = new_balance
                     success_message = f"Deposit of {deposit_amount}FCFA successful😊👍. Updated balance: {updated_balance}FCFA"
+                if account_number != account_num:
+                    error_message = "Invalid account number."
             else:
                 error_message = "Invalid account number."
 
