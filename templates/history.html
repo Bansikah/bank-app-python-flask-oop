@@ -2,11 +2,11 @@
 <html>
 <head>
     <title>Transaction History</title>
-
+    
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='history.css') }}">
 </head>
 <body>
-    <h1>Transaction History for Account {{ account.account_number }}</h1>
+    <h1>Transaction History for Account number {{ account.account_number }}</h1>
     <h2>Account Holder: {{ account.name }}</h2>
     <table>
         <thead>
@@ -30,5 +30,7 @@
         <i class="ph-check-square"></i>
         <span>Bank to Home</span>
       </a>
+    </div>
+    <script src="https://unpkg.com/phosphor-icons"></script>
 </body>
 </html>

@@ -74,11 +74,6 @@ class Transaction(db.Model):
 def home():
     return render_template('home.html')
 
-# @app.route('/account')
-# def account():
-    
-#     account = Account.query.filter_by(account_number=account_number).first() 
-#     return render_template('bank.html')
 
 @app.route('/settings')
 def settings():
@@ -182,25 +177,16 @@ def signup():
             # Create an associated account for the user
             account_number = generate_unique_account_number()
             name = username
-            balance = 2000.0
+            balance = 0.0
             account_password = hashed_password
 
             account = Account(account_number=account_number, name=name, balance=balance, password=account_password)
             db.session.add(account)
             db.session.commit()
-            return render_template('registration.html', user=user, error_message=error_message)
-        return redirect('/login ')
+            return redirect('/login')
+        return redirect('/login')
     return render_template('registration.html', user=user, error_message=error_message)
 
-
-
-
-# @app.route("/dashboard<int:account_number>")
-# def dashboard(account_number):
-#     account = Account.query.get_or_404(account_number)
-#     balance = account.balance
-#     name = account.name
-#     return render_template('bank.html', account = account, balance=balance, name=name)
 
 @app.route("/dashboard", methods=['GET'])
 def dashboard():
@@ -212,6 +198,8 @@ def dashboard():
 
 @app.route('/transfer', methods=['GET', 'POST']  )
 def transfer():
+    account_number = session.get('account_number')
+    account = Account.query.filter_by(account_number=account_number).first()
     if request.method == 'POST':
         sender_account_number = session.get('account_number')
         recipient_account_number = request.form['recipient-account-number']
@@ -235,7 +223,7 @@ def transfer():
             error_message = "Incorrect password."
 
         if error_message:
-            return render_template('transfer.html', error_message=error_message, accounts=Account.query.all())
+            return render_template('transfer.html', account=account, account_number=account_number, balance=account.balance, error_message=error_message, accounts=Account.query.all(),)
 
         # Transfer logic
         sender.balance -= amount
@@ -250,14 +238,17 @@ def transfer():
 
         success_message = f"Successfully transferred {amount} to {recipient_account_number}."
 
-        return render_template('transfer.html', success_message=success_message, accounts=Account.query.all())
+        return render_template('transfer.html', account=account, account_number=account_number, balance=account.balance, success_message=success_message, accounts=Account.query.all())
     else:
-        return render_template('transfer.html', accounts=Account.query.all())
+        return render_template('transfer.html', account=account, account_number=account_number, balance=account.balance, accounts=Account.query.all())
 
 
 
 @app.route('/history', methods=['GET', 'POST'])
 def history():
+    
+    account_number = session.get('account_number')
+    account = Account.query.filter_by(account_number=account_number).first()
     if request.method == 'POST':
         account_number = request.form['account-number']
         current = Account.query.filter_by(account_number=account_number).first()
@@ -266,19 +257,21 @@ def history():
         
         if account_number != account_num:
             error_message = "Invalid account number."
-            return render_template('history_form.html', error_message=error_message)
+            return render_template('history_form.html', account=current, account_number=account_number, account_num=account_num, error_message=error_message)
 
         transactions = Transaction.query.filter_by(account_number=account_number).all()
 
         return render_template('history.html', account=current, account_number=account_number, transactions=transactions, account_num=account_num)
     else:
-        return render_template('history_form.html')
+        return render_template('history_form.html', account=account, account_number=account_number, balance=account.balance, name=account.name)
 
 @app.route('/withdraw', methods=['GET', 'POST'])
 def withdraw_form():
     error_message = None
     success_message = None
     updated_balance = None
+    account_number = session.get('account_number')
+    account = Account.query.filter_by(account_number=account_number).first()
 
     if request.method == 'POST':
         account_number = request.form.get('account-number')
@@ -307,12 +300,12 @@ def withdraw_form():
             error_message = f"An unexpected error occurred: {e}"
             
             # Add transactions to sender and recipient accounts
-        account.add_transaction(+withdraw_amount, f"withdraw  from {account_number}")
+        account.add_transaction(+withdraw_amount, f"withdraw  from {account.name} with account number {account_number}")
         # Save changes to the database
         db.session.commit()
 
 
-    return render_template('withdraw.html', error_message=error_message, success_message=success_message)
+    return render_template('withdraw.html',  error_message=error_message, success_message=success_message, account=account, account_number=account_number, balance=account.balance, name=account.name)
 
 
 @app.route('/deposit', methods=['GET', 'POST'])
@@ -320,6 +313,8 @@ def deposit_form():
     error_message = None
     success_message = None
     updated_balance = None
+    account_number = session.get('account_number')
+    account = Account.query.filter_by(account_number=account_number).first()
     if request.method == 'POST':
         account_number = request.form['account-number']
         deposit_amount = float(request.form['deposit-amount'])
@@ -349,7 +344,7 @@ def deposit_form():
         # Save changes to the database
         db.session.commit()
 
-    return render_template('deposit.html', error_message=error_message, success_message=success_message)
+    return render_template('deposit.html',account=account, account_number=account_number, balance=account.balance, name=account.name, error_message=error_message, success_message=success_message)
 
 #db.create_all()
 if __name__ == '__main__':

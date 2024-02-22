@@ -1,17 +1,17 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    display: flex;
-    flex-flow: column;
-    align-items: center;
-}
 
 .form-container {
     width: 400px;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 4px;
-
+    font-family: Arial, sans-serif;
+    margin-top: 20px;
+    margin-left: 350px;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    text-align: center;
+    
 }
 
 .form-group {
@@ -156,3 +156,4 @@ body {
   .form-group select option:checked {
     font-weight: bold;
   }
+  
